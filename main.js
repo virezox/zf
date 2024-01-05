@@ -1,4 +1,7 @@
 const axios = require("axios");
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc");
+const timezone = require("dayjs/plugin/timezone");
 const qs = require("qs");
 const winston = require("winston");
 require("dotenv").config();
@@ -9,14 +12,15 @@ const zf_id = process.env.ZF_ID;
 const bark_key = process.env.BARK_KEY;
 const strs = process.env.STRS;
 
+dayjs.extend(timezone);
+dayjs.extend(utc);
+const tz = "Asia/Shanghai";
+
 const customFormat = winston.format.printf(({ message }) => {
   return `${message}`;
 });
 
-const dateStr = new Date()
-  .toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })
-  .split(" ")[0]
-  .replaceAll("/", "");
+const dateStr = dayjs.utc().tz(tz).format("YYYYMMDD");
 
 const logger = winston.createLogger({
   level: "info",
@@ -65,9 +69,7 @@ axios
     }).then(function (response) {
       orders = response.data.data.resell_orders;
       if (Array.isArray(orders)) {
-        logger.info(
-          new Date().toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" }),
-        );
+        logger.info(dayjs.utc().tz(tz).format("YYYY-MM-DD HH:mm:ss"));
         orders.forEach((o) => {
           const message = o.desc + "       ¥" + o.price;
           logger.info(message);
